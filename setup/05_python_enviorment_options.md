@@ -1,4 +1,4 @@
-# Step 4 — Python Environment Options
+# Step 5 — Python Environment Options
 
 There are two common ways to run Python in VS Code.
 
