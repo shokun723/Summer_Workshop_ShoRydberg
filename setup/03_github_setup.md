@@ -1,4 +1,4 @@
-# Step 3 — GitHub Setup
+# Step 4 — GitHub Setup
 
 In this step, you will:
 
@@ -23,7 +23,29 @@ https://github.com/
 
 ---
 
+## 1.5 Log into GitHub in VS Code (IMPORTANT)
+
+Even if you logged into GitHub in your browser, you must also log in inside VS Code.
+
+1. Open VS Code
+2. Look at the bottom-left corner
+3. Click the Accounts icon (👤)
+4. Select:
+
+```text
+Sign in with GitHub
+```
+
+5. A browser window will open
+6. Click:
+
+```text
+Authorize Visual Studio Code
+```
+
 ## 2. Create your own repository (your work)
+
+Now, on the browser:
 
 1. Click the **"+" (top right corner)**
 2. Select:
