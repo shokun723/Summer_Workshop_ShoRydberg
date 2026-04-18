@@ -43,6 +43,8 @@ Sign in with GitHub
 Authorize Visual Studio Code
 ```
 
+---
+
 ## 2. Create your own repository (your work)
 
 Now, on the browser:
