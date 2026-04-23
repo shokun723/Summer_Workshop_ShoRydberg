@@ -4,5 +4,6 @@ matplotlib
 torch
 torchvision
 ipykernel
-PIL
+Pillow
 scikit-learn
+requests
