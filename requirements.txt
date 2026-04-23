@@ -4,3 +4,5 @@ matplotlib
 torch
 torchvision
 ipykernel
+PIL
+scikit-learn
