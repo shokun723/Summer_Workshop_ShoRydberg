@@ -292,11 +292,12 @@ def preview_augmentations(image: Image.Image, seed: int = 42) -> dict[str, Image
         "Original": base,
         "Mirror": ImageOps.mirror(base),
         "Flip": ImageOps.flip(base),
-        "Rotate": ImageOps.fit(
+        "Rotate (black fill)": ImageOps.fit(
             base.rotate(18, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=(0, 0, 0)),
             base.size,
             method=Image.Resampling.BICUBIC,
         ),
+        "Rotate + crop": rotate_and_center_crop(base, 18),
         "Crop + Resize": random_crop_resize(base.copy()),
         "Shift": random_translate(base.copy()),
         "Color Shift": ImageEnhance.Color(base).enhance(1.35),
@@ -305,6 +306,55 @@ def preview_augmentations(image: Image.Image, seed: int = 42) -> dict[str, Image
         "Blur": base.filter(ImageFilter.GaussianBlur(radius=0.6)),
     }
     return previews
+
+
+def estimate_border_color(img: Image.Image, border_ratio: float = 0.08) -> tuple[int, int, int]:
+    """Estimate a natural fill color from the image edges."""
+    img = img.convert("RGB")
+    w, h = img.size
+    border_w = max(1, int(w * border_ratio))
+    border_h = max(1, int(h * border_ratio))
+    strips = [
+        img.crop((0, 0, w, border_h)),
+        img.crop((0, h - border_h, w, h)),
+        img.crop((0, 0, border_w, h)),
+        img.crop((w - border_w, 0, w, h)),
+    ]
+    pixels = []
+    for strip in strips:
+        pixels.extend(strip.getdata())
+    red = sum(pixel[0] for pixel in pixels) / len(pixels)
+    green = sum(pixel[1] for pixel in pixels) / len(pixels)
+    blue = sum(pixel[2] for pixel in pixels) / len(pixels)
+    return int(round(red)), int(round(green)), int(round(blue))
+
+
+def rotate_and_center_crop(
+    img: Image.Image,
+    angle: float,
+    crop_scale: float = 0.94,
+    fill_color: tuple[int, int, int] | None = None,
+) -> Image.Image:
+    """Rotate an image, then crop slightly to remove rotation borders."""
+    w, h = img.size
+    if fill_color is None:
+        fill_color = estimate_border_color(img)
+    rotated = img.rotate(
+        angle,
+        resample=Image.Resampling.BICUBIC,
+        expand=True,
+        fillcolor=fill_color,
+    )
+    fitted = ImageOps.fit(rotated, (w, h), method=Image.Resampling.BICUBIC)
+    if crop_scale >= 1:
+        return fitted
+
+    crop_w = max(1, int(w * crop_scale))
+    crop_h = max(1, int(h * crop_scale))
+    left = (w - crop_w) // 2
+    top = (h - crop_h) // 2
+    cropped = fitted.crop((left, top, left + crop_w, top + crop_h))
+    return cropped.resize((w, h), Image.Resampling.BICUBIC)
 
 
 def random_crop_resize(img: Image.Image, min_scale: float = 0.72) -> Image.Image:
@@ -323,7 +373,7 @@ def random_translate(img: Image.Image, max_shift_ratio: float = 0.12) -> Image.I
     max_dy = int(h * max_shift_ratio)
     dx = random.randint(-max_dx, max_dx)
     dy = random.randint(-max_dy, max_dy)
-    canvas = Image.new("RGB", (w, h), (0, 0, 0))
+    canvas = Image.new("RGB", (w, h), estimate_border_color(img))
     canvas.paste(img, (dx, dy))
     return canvas
 
@@ -355,13 +405,7 @@ def augment_one(image: Image.Image, out_size: int | None = 224) -> Image.Image:
         img = ImageOps.flip(img)
     if random.random() < 0.8:
         angle = random.uniform(-22, 22)
-        img = img.rotate(
-            angle,
-            resample=Image.Resampling.BICUBIC,
-            expand=True,
-            fillcolor=(0, 0, 0),
-        )
-        img = ImageOps.fit(img, (w, h), method=Image.Resampling.BICUBIC)
+        img = rotate_and_center_crop(img, angle)
     if random.random() < 0.65:
         img = random_crop_resize(img)
     if random.random() < 0.55:
@@ -398,6 +442,8 @@ def export_augmented_dataset(
     seed: int = 42,
     out_size: int = 224,
     status_prefix: str = "Augment",
+    max_generated_images: int = 250,
+    allow_large_export: bool = False,
 ) -> pd.DataFrame:
     random.seed(seed)
     output_root = Path(output_root).resolve()
@@ -413,6 +459,15 @@ def export_augmented_dataset(
         metadata_output.unlink()
 
     class_targets = compute_balanced_targets(records, label_column, target_class_size=target_class_size)
+    planned_new_images = sum(class_targets.values())
+    if planned_new_images > max_generated_images and not allow_large_export:
+        raise ValueError(
+            "Refusing to generate "
+            f"{planned_new_images} augmented images because the notebook safety cap is "
+            f"{max_generated_images}. Lower `TARGET_CLASS_SIZE`, reduce the dataset scope, "
+            "or rerun with `allow_large_export=True` only if you really want a large export."
+        )
+
     total_to_generate = len(records) + sum(class_targets.values())
     bar, status = create_progress(status_prefix, max(total_to_generate, 1))
 
