@@ -288,15 +288,16 @@ def load_images_as_arrays(
 def preview_augmentations(image: Image.Image, seed: int = 42) -> dict[str, Image.Image]:
     random.seed(seed)
     base = image.convert("RGB")
+    black_fill_rotation = ImageOps.fit(
+        base.rotate(18, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=(0, 0, 0)),
+        base.size,
+        method=Image.Resampling.BICUBIC,
+    )
     previews = {
         "Original": base,
         "Mirror": ImageOps.mirror(base),
         "Flip": ImageOps.flip(base),
-        "Rotate (black fill)": ImageOps.fit(
-            base.rotate(18, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=(0, 0, 0)),
-            base.size,
-            method=Image.Resampling.BICUBIC,
-        ),
+        "Rotate (edge crop)": crop_dark_augmentation_edges(black_fill_rotation),
         "Rotate + crop": rotate_and_center_crop(base, 18),
         "Crop + Resize": random_crop_resize(base.copy()),
         "Shift": random_translate(base.copy()),
@@ -308,44 +309,64 @@ def preview_augmentations(image: Image.Image, seed: int = 42) -> dict[str, Image
     return previews
 
 
-def estimate_border_color(img: Image.Image, border_ratio: float = 0.08) -> tuple[int, int, int]:
-    """Estimate a natural fill color from the image edges."""
+def crop_dark_augmentation_edges(
+    img: Image.Image,
+    dark_threshold: int = 24,
+    max_edge_dark_fraction: float = 0.0,
+    min_crop_fraction: float = 0.45,
+) -> Image.Image:
+    """Trim dark edge bands created by rotations/translations, then restore size."""
     img = img.convert("RGB")
     w, h = img.size
-    border_w = max(1, int(w * border_ratio))
-    border_h = max(1, int(h * border_ratio))
-    strips = [
-        img.crop((0, 0, w, border_h)),
-        img.crop((0, h - border_h, w, h)),
-        img.crop((0, 0, border_w, h)),
-        img.crop((w - border_w, 0, w, h)),
-    ]
-    pixels = []
-    for strip in strips:
-        pixels.extend(strip.getdata())
-    red = sum(pixel[0] for pixel in pixels) / len(pixels)
-    green = sum(pixel[1] for pixel in pixels) / len(pixels)
-    blue = sum(pixel[2] for pixel in pixels) / len(pixels)
-    return int(round(red)), int(round(green)), int(round(blue))
+    pixels = np.asarray(img)
+    dark_pixels = pixels.max(axis=2) <= dark_threshold
+
+    top, bottom = 0, h
+    left, right = 0, w
+    min_width = max(1, int(w * min_crop_fraction))
+    min_height = max(1, int(h * min_crop_fraction))
+
+    changed = True
+    while changed:
+        changed = False
+        if bottom - top > min_height and dark_pixels[top, left:right].mean() > max_edge_dark_fraction:
+            top += 1
+            changed = True
+        if bottom - top > min_height and dark_pixels[bottom - 1, left:right].mean() > max_edge_dark_fraction:
+            bottom -= 1
+            changed = True
+        if right - left > min_width and dark_pixels[top:bottom, left].mean() > max_edge_dark_fraction:
+            left += 1
+            changed = True
+        if right - left > min_width and dark_pixels[top:bottom, right - 1].mean() > max_edge_dark_fraction:
+            right -= 1
+            changed = True
+
+    if top == 0 and bottom == h and left == 0 and right == w:
+        return img
+
+    if (right - left) <= 0 or (bottom - top) <= 0:
+        return img
+
+    cropped = img.crop((left, top, right, bottom))
+    return cropped.resize((w, h), Image.Resampling.BICUBIC)
 
 
 def rotate_and_center_crop(
     img: Image.Image,
     angle: float,
     crop_scale: float = 0.94,
-    fill_color: tuple[int, int, int] | None = None,
 ) -> Image.Image:
     """Rotate an image, then crop slightly to remove rotation borders."""
     w, h = img.size
-    if fill_color is None:
-        fill_color = estimate_border_color(img)
     rotated = img.rotate(
         angle,
         resample=Image.Resampling.BICUBIC,
         expand=True,
-        fillcolor=fill_color,
+        fillcolor=(0, 0, 0),
     )
     fitted = ImageOps.fit(rotated, (w, h), method=Image.Resampling.BICUBIC)
+    fitted = crop_dark_augmentation_edges(fitted)
     if crop_scale >= 1:
         return fitted
 
@@ -373,9 +394,9 @@ def random_translate(img: Image.Image, max_shift_ratio: float = 0.12) -> Image.I
     max_dy = int(h * max_shift_ratio)
     dx = random.randint(-max_dx, max_dx)
     dy = random.randint(-max_dy, max_dy)
-    canvas = Image.new("RGB", (w, h), estimate_border_color(img))
+    canvas = Image.new("RGB", (w, h), (0, 0, 0))
     canvas.paste(img, (dx, dy))
-    return canvas
+    return crop_dark_augmentation_edges(canvas)
 
 
 def random_cutout(
@@ -416,6 +437,7 @@ def augment_one(image: Image.Image, out_size: int | None = 224) -> Image.Image:
         img = ImageEnhance.Color(img).enhance(random.uniform(0.8, 1.2))
     if random.random() < 0.2:
         img = img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.2, 1.0)))
+    img = crop_dark_augmentation_edges(img)
     if out_size:
         img = img.resize((out_size, out_size), Image.Resampling.BICUBIC)
     return img

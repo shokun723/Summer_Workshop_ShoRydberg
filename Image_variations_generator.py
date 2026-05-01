@@ -1,6 +1,7 @@
 import argparse
 import random
 from pathlib import Path
+import numpy as np
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter, ImageDraw
 
 VALID_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
@@ -20,6 +21,49 @@ def random_crop_resize(img: Image.Image, min_scale=0.7) -> Image.Image:
     return cropped.resize((w, h), Image.Resampling.BICUBIC)
 
 
+def crop_dark_augmentation_edges(
+    img: Image.Image,
+    dark_threshold: int = 24,
+    max_edge_dark_fraction: float = 0.0,
+    min_crop_fraction: float = 0.45,
+) -> Image.Image:
+    """Trim dark edge bands created by rotations/translations, then restore size."""
+    img = img.convert("RGB")
+    w, h = img.size
+    pixels = np.asarray(img)
+    dark_pixels = pixels.max(axis=2) <= dark_threshold
+
+    top, bottom = 0, h
+    left, right = 0, w
+    min_width = max(1, int(w * min_crop_fraction))
+    min_height = max(1, int(h * min_crop_fraction))
+
+    changed = True
+    while changed:
+        changed = False
+        if bottom - top > min_height and dark_pixels[top, left:right].mean() > max_edge_dark_fraction:
+            top += 1
+            changed = True
+        if bottom - top > min_height and dark_pixels[bottom - 1, left:right].mean() > max_edge_dark_fraction:
+            bottom -= 1
+            changed = True
+        if right - left > min_width and dark_pixels[top:bottom, left].mean() > max_edge_dark_fraction:
+            left += 1
+            changed = True
+        if right - left > min_width and dark_pixels[top:bottom, right - 1].mean() > max_edge_dark_fraction:
+            right -= 1
+            changed = True
+
+    if top == 0 and bottom == h and left == 0 and right == w:
+        return img
+
+    if (right - left) <= 0 or (bottom - top) <= 0:
+        return img
+
+    cropped = img.crop((left, top, right, bottom))
+    return cropped.resize((w, h), Image.Resampling.BICUBIC)
+
+
 def random_translate(img: Image.Image, max_shift_ratio=0.15) -> Image.Image:
     w, h = img.size
     max_dx = int(w * max_shift_ratio)
@@ -29,7 +73,7 @@ def random_translate(img: Image.Image, max_shift_ratio=0.15) -> Image.Image:
 
     canvas = Image.new("RGB", (w, h), (0, 0, 0))
     canvas.paste(img, (dx, dy))
-    return canvas
+    return crop_dark_augmentation_edges(canvas)
 
 
 def random_cutout(img: Image.Image, holes_range=(1, 4), size_range=(0.06, 0.2)) -> Image.Image:
@@ -63,6 +107,7 @@ def augment_one(img: Image.Image, out_size=None) -> Image.Image:
             fillcolor=(0, 0, 0),
         )
         img = ImageOps.fit(img, (w, h), method=Image.Resampling.BICUBIC)
+        img = crop_dark_augmentation_edges(img)
 
     if random.random() < 0.7:
         img = random_crop_resize(img, min_scale=0.7)
@@ -80,6 +125,8 @@ def augment_one(img: Image.Image, out_size=None) -> Image.Image:
 
     if random.random() < 0.35:
         img = random_cutout(img.copy(), holes_range=(1, 4), size_range=(0.06, 0.2))
+
+    img = crop_dark_augmentation_edges(img)
 
     if out_size is not None:
         img = img.resize((out_size, out_size), Image.Resampling.BICUBIC)
