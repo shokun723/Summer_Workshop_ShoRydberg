@@ -1,9 +1,12 @@
 numpy
 pandas
 matplotlib
+plotly
 torch
 torchvision
 ipykernel
+ipython
+nbformat>=4.2.0
 Pillow
 scikit-learn
 requests
