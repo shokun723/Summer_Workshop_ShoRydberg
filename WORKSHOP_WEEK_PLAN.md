@@ -40,12 +40,15 @@ What is one situation where the model was helpful, and one situation where you w
 
 Notebook: `0_Class_Notebooks/02_Know_Data_Images.ipynb`
 
+Optional bridge: `0_Class_Notebooks/02B_Optional_Know_Data_Images_Fourier.ipynb`
+
 Main ideas:
 
 - Images are arrays of numbers.
 - Color, grayscale, resizing, scaling, and normalization change what the model sees.
 - Compression and SVD show that images contain both important structure and removable detail.
 - Augmentation creates new training examples from existing images.
+- Fourier views show images as low-frequency broad structure and high-frequency fine detail.
 
 Student decisions:
 
@@ -56,6 +59,10 @@ Student decisions:
 Exit question:
 
 What image preparation choice might accidentally make a model worse?
+
+Optional Fourier exit question:
+
+Which details in a device image seem more like low-frequency structure, and which seem more like high-frequency texture, edges, or defects?
 
 ## Topic 3: Classification
 

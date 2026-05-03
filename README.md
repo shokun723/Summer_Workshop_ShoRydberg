@@ -10,11 +10,12 @@ The main class notebooks are in `0_Class_Notebooks`:
 
 1. `01_Know_Data_Numerical.ipynb` - numerical data, missing values, plotting, regression, and prediction limits.
 2. `02_Know_Data_Images.ipynb` - images as data, pixels, resizing, color modes, scaling, compression, and augmentation concepts.
-3. `03_Image_Augmentation_Workbench.ipynb` - creating balanced image datasets and localization-ready images.
-4. `04_Image_Classification_Grayscale.ipynb` - supervised image classification using grayscale device images.
-5. `05_Image_Classification_RGB.ipynb` - supervised image classification using RGB device images.
-6. `06_Defect_Localization_Clustering.ipynb` - clustering and anomaly-style workflows for defect localization.
-7. `07_Student_ML_Experiment_Log.ipynb` - student mini-project planning, result tracking, and final reflection.
+3. `02B_Optional_Know_Data_Images_Fourier.ipynb` - optional image-frequency concept bridge using known patterns and device images before classification.
+4. `03_Image_Augmentation_Workbench.ipynb` - creating balanced image datasets and localization-ready images.
+5. `04_Image_Classification_Grayscale.ipynb` - supervised image classification using grayscale device images.
+6. `05_Image_Classification_RGB.ipynb` - supervised image classification using RGB device images.
+7. `06_Defect_Localization_Clustering.ipynb` - clustering and anomaly-style workflows for defect localization.
+8. `07_Student_ML_Experiment_Log.ipynb` - student mini-project planning, result tracking, and final reflection.
 
 Optional extension:
 
