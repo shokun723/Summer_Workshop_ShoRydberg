@@ -16,6 +16,11 @@ The main class notebooks are in `0_Class_Notebooks`:
 6. `06_Defect_Localization_Clustering.ipynb` - clustering and anomaly-style workflows for defect localization.
 7. `07_Student_ML_Experiment_Log.ipynb` - student mini-project planning, result tracking, and final reflection.
 
+Optional extension:
+
+- `08_Optional_Fourier_Image_Classification.ipynb` - supervised image classification using Fourier-transform frequency features instead of raw pixels.
+- `09_Optional_Fourier_Defect_Detection.ipynb` - defect detection with Fourier frequency features, a clean-reference anomaly score, and patch-level heatmaps.
+
 Student reference handout:
 
 - `PYTHON_ML_CHEAT_SHEET.md` - beginner-friendly Python and machine learning command dictionary grouped by common workshop tasks.
