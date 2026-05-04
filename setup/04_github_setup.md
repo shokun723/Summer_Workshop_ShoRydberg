@@ -3,12 +3,10 @@
 In this step, you will:
 
 * Log into GitHub
-* Create your own repository
+* Create your own copy of the workshop repository
 * Add instructors as collaborators
-* Clone BOTH repositories:
-
-  * Workshop repository (instructions)
-  * Your personal repository (your work)
+* Clone your copy to your computer
+* Save your work to your own repository
 
 ---
 
@@ -32,98 +30,92 @@ Even if you logged into GitHub in your browser, you must also log in inside VS C
 3. Click the Accounts icon (👤)
 4. Select:
 
-```text
+```text id="h0r7f3"
 Sign in with GitHub
 ```
 
 5. A browser window will open
 6. Click:
 
-```text
+```text id="z5nq3y"
 Authorize Visual Studio Code
 ```
 
 ---
 
-## 2. Create your own repository (your work)
+## 2. Fork the workshop repository (IMPORTANT)
 
-Now, on the browser:
+Your instructor will provide a repository link.
 
-1. Click the **"+" (top right corner)**
-2. Select:
+1. Open the workshop repository in your browser
+2. Click:
 
-```text
-New repository
+```text id="w4n6d2"
+Fork
 ```
 
-3. Fill in:
+(top-right corner)
 
-* Repository name:
+3. Keep the default settings
+4. Click:
 
-```text
-summer-workshop-yourname
+```text id="k9x2p1"
+Create fork
 ```
 
-(Replace *yourname* with your name)
-
-* Visibility:
-
-```text
-Private
-```
+👉 This creates your own copy of the repository under your account.
 
 ---
 
-## 3. Initialize your repository (IMPORTANT)
+## 3. Rename your repository
 
-Before clicking **Create repository**, enable:
+After forking, rename your repository:
 
-```text
-✔ Add a README file
-✔ Add .gitignore → select "Python"
+1. Go to your forked repository
+2. Click:
+
+```text id="v2c8r0"
+Settings
 ```
 
-Leave:
+3. Change the name to:
 
-```text
-License → No license
+```text id="q7p1e4"
+summer-workshop-yourname
 ```
 
 4. Click:
 
-```text
-Create repository
+```text id="j3m9s6"
+Rename
 ```
 
 ---
 
 ## 4. Add instructors as collaborators
 
-1. Open your repository
-2. Go to:
+1. In your repository, go to:
 
-```text
+```text id="t8f4b2"
 Settings → Collaborators
 ```
 
-3. Click:
+2. Click:
 
-```text
+```text id="d6k1x7"
 Add people
 ```
 
-4. Add your instructor(s)
+3. Add your instructor(s)
 
 ---
 
-## 5. Clone the workshop repository (instructions)
+## 5. Clone your repository (your work)
 
-Your instructor will provide a link.
-
-1. Open the link
+1. Open your repository
 2. Click:
 
-```text
+```text id="p2n7w5"
 Code
 ```
 
@@ -136,91 +128,65 @@ Code
 1. Open VS Code
 2. Press:
 
-```text
+```text id="m4v9c2"
 Ctrl + Shift + P
 ```
 
 3. Type:
 
-```text
+```text id="b8y3q1"
 Git: Clone
 ```
 
-4. Paste the workshop repository link
+4. Paste your repository link
 5. Choose a location
 6. Click:
 
-```text
+```text id="z1k6t8"
 Open
 ```
 
- This folder contains the instructions and starter files.
+👉 This will:
+
+* Create a folder
+* Download your repository
+* Open it in VS Code
 
 ---
 
-## 7. Clone your repository (your work)
+## 7. Work on the files
 
-Repeat the same steps:
+* Edit notebooks
+* Follow instructions
+* Save your work
 
-1. Press:
-
-```text
-Ctrl + Shift + P
-```
-
-2. Select:
-
-```text
-Git: Clone
-```
-
-3. Paste YOUR repository link
-4. Choose a location
-5. Click:
-
-```text
-Open
-```
-
- This is the folder where your work will be saved.
+All changes will be saved in your repository only.
 
 ---
 
-## 8. Copy workshop files into your repository
+## 8. Save your work to GitHub
 
-Now copy files from the workshop repository into your repository.
+In VS Code terminal:
 
-You can:
-
-* Drag and drop files in VS Code
-* Or copy/paste between folders
-
----
-
-## 9. Save your work to GitHub
-
-In your repository folder (NOT the workshop folder):
-
-Open terminal and run:
-
-```bash
+```bash id="x9d2m4"
 git add .
-git commit -m "Initial workshop setup"
+git commit -m "My progress"
 git push
 ```
 
 ---
 
-## 10. Verify
+## 9. Verify
 
-Go to your GitHub repository in your browser.
+Go to your repository in the browser.
 
-You should now see your files uploaded.
+You should see your changes updated.
 
 ---
 
 ## 💡 Notes
 
-* Workshop repository = instructions (do NOT push here)
-* Your repository = your work (push here)
-* Always make sure you are working in the correct folder
+* Your repository is a copy of the instructor’s repository
+* You can edit files without affecting the original
+* All your work is saved in your own repository
+* Instructors can view your progress if added as collaborators
