@@ -464,7 +464,7 @@ def export_augmented_dataset(
     seed: int = 42,
     out_size: int = 224,
     status_prefix: str = "Augment",
-    max_generated_images: int = 250,
+    max_generated_images: int = 500,
     allow_large_export: bool = False,
 ) -> pd.DataFrame:
     random.seed(seed)
