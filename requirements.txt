@@ -2,6 +2,7 @@ numpy
 pandas
 matplotlib
 plotly
+bokeh
 torch
 torchvision
 ipykernel
